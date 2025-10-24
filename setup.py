@@ -15,10 +15,10 @@ def get_requirements(file_path:str)->List[str]:
     return requirements
 
 setup(
-    name='PredAnalysisProject',
+    name='Movie_Revenue_prediction',
     version='0.0.1',
-    author='Sahu',
-    author_email='venkateswarsahu000@gmail.com',
+    author='Karthik',
+    author_email='karthikreddynicky618772@gmail.com',
     packages=find_packages(),
     install_requires=get_requirements('requirements.txt')
 )
