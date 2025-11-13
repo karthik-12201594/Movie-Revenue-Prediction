@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>Movie Revenue Predictor</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<style>
+    body {
+        background: #f4f6f9;
+        font-family: "Inter", sans-serif;
+    }
+
+    .header-box {
+        background: linear-gradient(135deg, #4b79ff, #7a5cff);
+        padding: 35px 40px;
+        border-radius: 18px;
+        color: white;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+    }
+
+    .header-title {
+        font-weight: 800;
+        font-size: 2.4rem;
+        margin: 0;
+    }
+
+    .card-modern {
+        background: white;
+        padding: 24px;
+        border-radius: 16px;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+        border: 1px solid #f0f0f0;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: #333;
+    }
+
+    input, select {
+        border-radius: 10px !important;
+    }
+
+    .btn-modern {
+        background: linear-gradient(135deg,#4b79ff,#7a5cff);
+        padding: 10px 22px;
+        border-radius: 12px;
+        border: none;
+        color: white;
+        font-size: 1.1rem;
+        font-weight: 600;
+        width: 100%;
+        transition: 0.25s;
+    }
+    .btn-modern:hover {
+        opacity: 0.9;
+        transform: translateY(-2px);
+    }
+
+    .result-card {
+        background: white;
+        padding: 28px;
+        border-radius: 18px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.10);
+        text-align: center;
+        border: 1px solid #eee;
+    }
+
+    .result-value {
+        font-size: 2.3rem;
+        font-weight: 800;
+        color: #4b5cff;
+    }
+
+    .badge-level {
+        background: #4b79ff;
+        padding: 8px 16px;
+        border-radius: 18px;
+        color: white;
+        font-size: 1rem;
+        font-weight: 600;
+    }
+
+</style>
+</head>
+
+<body>
+
+<div class="container py-5">
+
+    <!-- HEADER -->
+    <div class="header-box mb-4">
+        <h1 class="header-title">🎬 Movie Revenue Predictor</h1>
+        <p class="mt-2" style="font-size: 1.1rem; opacity: 0.9;">
+            Enter basic movie details and estimate revenue instantly.
+        </p>
+    </div>
+
+    <div class="row g-4">
+
+        <!-- FORM SECTION -->
+        <div class="col-md-7">
+            <div class="card-modern">
+
+                <form id="predict-form">
+                    <div class="row g-3">
+
+                        <div class="col-md-12">
+                            <label class="form-label">Movie Title</label>
+                            <input class="form-control" name="title" placeholder="Inception">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">Language</label>
+                            <select name="original_language" class="form-select">
+                                <option value="">Select Language</option>
+                                {% for code in languages %}
+                                <option value="{{ code }}">{{ LANGUAGE_FULL.get(code, code) }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">Genre</label>
+                            <select name="genres" class="form-select">
+                                <option value="">Select Genre</option>
+                                {% for g in genres %}
+                                <option value="{{ g }}">{{ g }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label">Budget ($)</label>
+                            <input class="form-control" name="budget" placeholder="50000000">
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label">Runtime (mins)</label>
+                            <input class="form-control" name="runtime" placeholder="120">
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label">Vote Average</label>
+                            <input class="form-control" name="vote_average" placeholder="7.2">
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label">Vote Count</label>
+                            <input class="form-control" name="vote_count" placeholder="1400">
+                        </div>
+
+                        <div class="col-md-12">
+                            <label class="form-label">Release Date</label>
+                            <div class="d-flex gap-2">
+                                <input name="release_year" class="form-control" placeholder="2026">
+                                <input name="release_month" class="form-control" placeholder="05">
+                                <input name="release_day" class="form-control" placeholder="18">
+                            </div>
+                        </div>
+
+                        <div class="col-md-12 mt-2">
+                            <button class="btn-modern" type="submit">Predict Revenue</button>
+                        </div>
+
+                    </div>
+                </form>
+
+            </div>
+        </div>
+
+        <!-- RESULT SECTION -->
+        <div class="col-md-5">
+            <div class="result-card">
+                <div id="pred-result" class="result-value">—</div>
+                <p id="pred-sub">Waiting for prediction...</p>
+                <span id="category-badge" class="badge-level">—</span>
+                <p class="mt-3 mb-0">
+                    ROI: <strong><span id="roi-value">—</span></strong>
+                </p>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+<!-- Prediction Script -->
+<script>
+const form = document.getElementById("predict-form");
+const resBox = document.getElementById("pred-result");
+const sub = document.getElementById("pred-sub");
+const cat = document.getElementById("category-badge");
+const roi = document.getElementById("roi-value");
+
+form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    resBox.textContent = "⏳";
+    sub.textContent = "Predicting...";
+
+    const formData = new FormData(form);
+    const payload = {};
+    formData.forEach((v, k) => { if (v !== "") payload[k] = v; });
+
+    const response = await fetch("/predict", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify(payload)
+    });
+
+    const data = await response.json();
+    const pred = data.prediction;
+
+    resBox.textContent = "$" + Math.round(pred).toLocaleString();
+    sub.textContent = (pred / 1e6).toFixed(2) + "M USD";
+
+    if (pred < 10000000) { cat.textContent = "Low Revenue"; cat.style.background = "#e74c3c"; }
+    else if (pred < 50000000) { cat.textContent = "Moderate"; cat.style.background = "#f1c40f"; }
+    else if (pred < 150000000) { cat.textContent = "Hit Movie"; cat.style.background = "#3498db"; }
+    else { cat.textContent = "Blockbuster"; cat.style.background = "#2ecc71"; }
+
+    if (payload.budget) {
+        let b = parseFloat(payload.budget);
+        if (b > 0) roi.textContent = ((pred - b) / b * 100).toFixed(1) + "%";
+    }
+});
+</script>
+
+</body>
+</html>
