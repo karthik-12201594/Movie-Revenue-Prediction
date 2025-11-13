@@ -1,32 +1,29 @@
-# Python
+# Python cache
 __pycache__/
 *.py[cod]
 *.pyo
 *.pyd
 *.swp
-.env
-*.env
 
-# Virtual env
+# Virtual environment
 .venv/
 venv/
 env/
 
-# VS Code
+# VS Code settings
 .vscode/
 
-# Jupyter
+# Jupyter notebooks
 .ipynb_checkpoints/
 *.ipynb
 
-# Data & artifacts (don't commit large files)
+# Large raw data folders (safe to ignore)
 data/
-artifacts/
 
 # Logs
 logs/
 *.log
 
-# OS
+# OS files
 .DS_Store
 Thumbs.db
